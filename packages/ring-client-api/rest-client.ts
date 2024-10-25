@@ -1,3 +1,11 @@
+import type { Credentials } from '@eneris/push-receiver/dist/types'
+import assert from 'assert'
+import { ReplaySubject } from 'rxjs'
+import {
+  Auth2faResponse,
+  AuthTokenResponse,
+  SessionResponse,
+} from './ring-types'
 import {
   delay,
   fromBase64,
@@ -8,14 +16,6 @@ import {
   stringify,
   toBase64,
 } from './util'
-import {
-  Auth2faResponse,
-  AuthTokenResponse,
-  SessionResponse,
-} from './ring-types'
-import { ReplaySubject } from 'rxjs'
-import assert from 'assert'
-import type { Credentials } from '@eneris/push-receiver/dist/types'
 
 interface RequestOptions extends RequestInit {
   responseType?: 'json' | 'buffer'
@@ -214,13 +214,9 @@ function parseAuthConfig(rawRefreshToken?: string): AuthConfig | undefined {
 }
 
 export class RingRestClient {
-  public refreshToken =
-    'refreshToken' in this.authOptions
-      ? this.authOptions.refreshToken
-      : undefined
+  public refreshToken?: string
   private authConfig = parseAuthConfig(this.refreshToken)
-  private hardwareIdPromise =
-    this.authConfig?.hid || getHardwareId(this.authOptions.systemId)
+  private hardwareIdPromise?: string | Promise<string>
   private _authPromise: Promise<AuthTokenResponse> | undefined
   private timeouts: ReturnType<typeof setTimeout>[] = []
   private clearPreviousAuth() {
@@ -261,13 +257,23 @@ export class RingRestClient {
   public onSession = new ReplaySubject<SessionResponse>(1)
   public readonly baseSessionMetadata = {
     api_version: apiVersion,
-    device_model:
-      this.authOptions.controlCenterDisplayName ?? 'ring-client-api',
+    device_model: 'ring-client-api',
   }
 
   constructor(
     private authOptions: (EmailAuth | RefreshTokenAuth) & SessionOptions,
-  ) {}
+  ) {
+    this.refreshToken =
+      'refreshToken' in this.authOptions
+        ? this.authOptions.refreshToken
+        : undefined
+
+    this.hardwareIdPromise =
+      this.authConfig?.hid || getHardwareId(this.authOptions.systemId)
+
+    this.baseSessionMetadata.device_model =
+      this.authOptions.controlCenterDisplayName ?? 'ring-client-api'
+  }
 
   private getGrantData(twoFactorAuthCode?: string) {
     if (this.authConfig?.rt && !twoFactorAuthCode) {
@@ -307,7 +313,7 @@ export class RingRestClient {
           headers: {
             '2fa-support': 'true',
             '2fa-code': twoFactorAuthCode || '',
-            hardware_id: hardwareId,
+            hardware_id: hardwareId!,
             'User-Agent': 'android:com.ringapp',
           },
         }),
@@ -485,7 +491,7 @@ export class RingRestClient {
         headers: {
           ...options.headers,
           authorization: `Bearer ${authTokenResponse.access_token}`,
-          hardware_id: hardwareId,
+          hardware_id: hardwareId!,
           'User-Agent': 'android:com.ringapp',
         },
       })
