@@ -215,7 +215,7 @@ function parseAuthConfig(rawRefreshToken?: string): AuthConfig | undefined {
 
 export class RingRestClient {
   public refreshToken?: string
-  private authConfig = parseAuthConfig(this.refreshToken)
+  private authConfig?: AuthConfig
   private hardwareIdPromise?: string | Promise<string>
   private _authPromise: Promise<AuthTokenResponse> | undefined
   private timeouts: ReturnType<typeof setTimeout>[] = []
@@ -267,6 +267,8 @@ export class RingRestClient {
       'refreshToken' in this.authOptions
         ? this.authOptions.refreshToken
         : undefined
+
+    this.authConfig = parseAuthConfig(this.refreshToken)
 
     this.hardwareIdPromise =
       this.authConfig?.hid || getHardwareId(this.authOptions.systemId)
