@@ -45,6 +45,9 @@
     "tsconfig": "*",
     "typescript": "5.6.3"
   },
+  "overrides": {
+    "@shinyoshiaki/binary-data": "npm:@seydx/binary-data@0.6.1"
+  },
   "engines": {
     "node": "^18 || ^20 || ^22"
   },
