@@ -1,3 +1,14 @@
+import PushReceiver from '@eneris/push-receiver'
+import JSONbig from 'json-bigint'
+import { combineLatest, EMPTY, merge, Subject } from 'rxjs'
+import {
+  debounceTime,
+  startWith,
+  switchMap,
+  throttleTime,
+} from 'rxjs/operators'
+import { setFfmpegPath } from './ffmpeg'
+import { Location } from './location'
 import {
   clientApi,
   deviceApi,
@@ -5,7 +16,9 @@ import {
   RingRestClient,
   SessionOptions,
 } from './rest-client'
-import { Location } from './location'
+import { AnyCameraData, RingCamera } from './ring-camera'
+import { RingChime } from './ring-chime'
+import { RingIntercom } from './ring-intercom'
 import {
   BaseStation,
   BeamBridge,
@@ -21,21 +34,8 @@ import {
   UnknownDevice,
   UserLocation,
 } from './ring-types'
-import { AnyCameraData, RingCamera } from './ring-camera'
-import { RingChime } from './ring-chime'
-import { combineLatest, EMPTY, merge, Subject } from 'rxjs'
-import {
-  debounceTime,
-  startWith,
-  switchMap,
-  throttleTime,
-} from 'rxjs/operators'
-import { clearTimeouts, enableDebug, logDebug, logError, logInfo } from './util'
-import { setFfmpegPath } from './ffmpeg'
 import { Subscribed } from './subscribed'
-import PushReceiver from '@eneris/push-receiver'
-import { RingIntercom } from './ring-intercom'
-import JSONbig from 'json-bigint'
+import { clearTimeouts, enableDebug, logDebug, logError, logInfo } from './util'
 
 export interface RingApiOptions extends SessionOptions {
   locationIds?: string[]
@@ -243,6 +243,7 @@ export class RingApi extends Subscribed {
         },
         credentials,
         debug: false,
+        heartbeatIntervalMs: 5 * 60 * 1000,
       }),
       devicesById: { [id: number]: RingCamera | RingIntercom | undefined } = {},
       sendToDevice = (id: number, notification: PushNotification) => {
