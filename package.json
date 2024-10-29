@@ -33,6 +33,9 @@
   "overrides": {
     "@shinyoshiaki/binary-data": "npm:@seydx/binary-data@0.6.1"
   },
+  "overrides": {
+    "@shinyoshiaki/binary-data": "npm:@seydx/binary-data@0.6.1"
+  },
   "workspaces": [
     "packages/*"
   ],

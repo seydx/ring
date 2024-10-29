@@ -1,3 +1,11 @@
+import type { Credentials } from '@eneris/push-receiver/dist/types'
+import assert from 'assert'
+import { ReplaySubject } from 'rxjs'
+import {
+  Auth2faResponse,
+  AuthTokenResponse,
+  SessionResponse,
+} from './ring-types'
 import {
   delay,
   fromBase64,
@@ -8,14 +16,6 @@ import {
   stringify,
   toBase64,
 } from './util'
-import {
-  Auth2faResponse,
-  AuthTokenResponse,
-  SessionResponse,
-} from './ring-types'
-import { ReplaySubject } from 'rxjs'
-import assert from 'assert'
-import type { Credentials } from '@eneris/push-receiver/dist/types'
 
 interface RequestOptions extends RequestInit {
   responseType?: 'json' | 'buffer'
