@@ -1,4 +1,5 @@
 /* eslint-disable brace-style */
+import { interval, merge, Observable, ReplaySubject, Subject } from 'rxjs'
 import {
   ConnectionState,
   MediaStreamTrack,
@@ -8,9 +9,8 @@ import {
   RTCRtpCodecParameters,
   RtpPacket,
 } from 'werift'
-import { interval, merge, Observable, ReplaySubject, Subject } from 'rxjs'
-import { logDebug, logError, logInfo } from '../util'
 import { Subscribed } from '../subscribed'
+import { logDebug, logError, logInfo } from '../util'
 
 const ringIceServers = [
   'stun:stun.kinesisvideo.us-east-1.amazonaws.com:443',
@@ -126,13 +126,15 @@ export class WeriftPeerConnection
             videoTransceiver.receiver
               .sendRtcpPLI(track.ssrc!)
               .catch((e) => logError(e))
-          }),
+          })
         )
         this.requestKeyFrame()
       })
     })
     this.pc.onIceCandidate.subscribe((iceCandidate) => {
-      this.onIceCandidate.next(iceCandidate)
+      if (iceCandidate) {
+        this.onIceCandidate.next(iceCandidate)
+      }
     })
 
     pc.iceConnectionStateChange.subscribe(() => {

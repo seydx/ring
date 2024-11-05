@@ -1,4 +1,3 @@
-import { WebSocket } from 'ws'
 import {
   firstValueFrom,
   fromEvent,
@@ -7,11 +6,12 @@ import {
   Subject,
 } from 'rxjs'
 import { concatMap, take } from 'rxjs/operators'
-import { generateUuid, logDebug, logError, logInfo } from '../util'
-import { RingCamera } from '../ring-camera'
-import { BasicPeerConnection, WeriftPeerConnection } from './peer-connection'
-import { Subscribed } from '../subscribed'
 import { RtpPacket } from 'werift'
+import { WebSocket } from 'ws'
+import { RingCamera } from '../ring-camera'
+import { Subscribed } from '../subscribed'
+import { generateUuid, logDebug, logError, logInfo } from '../util'
+import { BasicPeerConnection, WeriftPeerConnection } from './peer-connection'
 import { IncomingMessage } from './streaming-messages'
 
 export interface StreamingConnectionOptions {
@@ -36,7 +36,7 @@ export class WebrtcConnection extends Subscribed {
   constructor(
     ticket: string,
     private camera: RingCamera,
-    options: StreamingConnectionOptions,
+    options: StreamingConnectionOptions
   ) {
     super()
     this.ws = new WebSocket(
@@ -46,7 +46,7 @@ export class WebrtcConnection extends Subscribed {
           // This must exist or the socket will close immediately but content does not seem to matter
           'User-Agent': 'android:com.ringapp',
         },
-      },
+      }
     )
 
     if (options.createPeerConnection) {
@@ -81,13 +81,13 @@ export class WebrtcConnection extends Subscribed {
                 e.message.includes('negotiate codecs failed')
               ) {
                 e = new Error(
-                  'Failed to negotiate codecs.  This is a known issue with Ring cameras.  Please see https://github.com/dgreif/ring/wiki/Streaming-Legacy-Mode',
+                  'Failed to negotiate codecs.  This is a known issue with Ring cameras.  Please see https://github.com/dgreif/ring/wiki/Streaming-Legacy-Mode'
                 )
               }
               this.onError.next(e)
               throw e
             })
-          }),
+          })
         )
         .subscribe(),
 
@@ -142,7 +142,7 @@ export class WebrtcConnection extends Subscribed {
             mlineindex: iceCandidate.sdpMLineIndex,
           },
         })
-      }),
+      })
     )
   }
 
@@ -219,6 +219,10 @@ export class WebrtcConnection extends Subscribed {
         logError(message.body)
         this.callEnded()
         return
+      case 'camera_started':
+      case 'stream_info':
+        // ignore these messages as we don't use them
+        return
     }
 
     logError('UNKNOWN MESSAGE')
@@ -246,7 +250,7 @@ export class WebrtcConnection extends Subscribed {
     } else {
       // Otherwise wait for the session id to be set and then send the message
       this.addSubscriptions(
-        this.onSessionId.pipe(take(1)).subscribe(sendSessionMessage),
+        this.onSessionId.pipe(take(1)).subscribe(sendSessionMessage)
       )
     }
   }
@@ -267,7 +271,7 @@ export class WebrtcConnection extends Subscribed {
       this.pc.returnAudioTrack.writeRtp(rtp)
     } else {
       throw new Error(
-        'Cannot send audio packets to a custom peer connection implementation',
+        'Cannot send audio packets to a custom peer connection implementation'
       )
     }
   }
@@ -289,7 +293,7 @@ export class WebrtcConnection extends Subscribed {
         this.sendSessionMessage('camera_options', {
           stealth_mode: false,
         })
-      }),
+      })
     )
   }
 

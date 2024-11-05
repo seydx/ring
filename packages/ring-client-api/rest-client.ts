@@ -91,7 +91,14 @@ async function responseToError(response: Response) {
 
 async function requestWithRetry<T>(
   requestOptions: RequestOptions & { url: string; allowNoResponse?: boolean },
+  retryCount = 0
 ): Promise<T & ExtendedResponse> {
+  if (typeof fetch !== 'function') {
+    throw new Error(
+      `Your current NodeJS version (${process.version}) is too old to support this plugin.  Please upgrade to the latest LTS version of NodeJS.`
+    )
+  }
+
   try {
     if (requestOptions.json || requestOptions.responseType === 'json') {
       requestOptions.headers = {
@@ -153,18 +160,23 @@ async function requestWithRetry<T>(
     return data
   } catch (e: any) {
     if (!e.response && !requestOptions.allowNoResponse) {
-      logError(
-        `Failed to reach Ring server at ${requestOptions.url}.  ${e.message}.  Trying again in 5 seconds...`,
-      )
-      if (e.message.includes('NGHTTP2_ENHANCE_YOUR_CALM')) {
+      if (retryCount > 0) {
+        let detailedError = `Error: ${e.message}`
+        detailedError += e.cause?.message ? `, Cause: ${e.cause.message}` : ''
+        detailedError += e.cause?.code ? `, Code: ${e.cause.code}` : ''
         logError(
-          `There is a known issue with your current NodeJS version (${process.version}).  Please see https://github.com/dgreif/ring/wiki/NGHTTP2_ENHANCE_YOUR_CALM-Error for details`,
+          `Retry #${retryCount} failed to reach Ring server at ${requestOptions.url}.  ${detailedError}.  Trying again in 5 seconds...`
         )
+        if (e.message.includes('NGHTTP2_ENHANCE_YOUR_CALM')) {
+          logError(
+            `There is a known issue with your current NodeJS version (${process.version}).  Please see https://github.com/dgreif/ring/wiki/NGHTTP2_ENHANCE_YOUR_CALM-Error for details`
+          )
+        }
+        logDebug(e)
       }
-      logDebug(e)
 
       await delay(5000)
-      return requestWithRetry(requestOptions)
+      return requestWithRetry(requestOptions, retryCount + 1)
     }
     throw e
   }
@@ -230,14 +242,11 @@ export class RingRestClient {
       authPromise
         .then(({ expires_in }) => {
           // clear the existing auth promise 1 minute before it expires
-          const timeout = setTimeout(
-            () => {
-              if (this._authPromise === authPromise) {
-                this.clearPreviousAuth()
-              }
-            },
-            ((expires_in || 3600) - 60) * 1000,
-          )
+          const timeout = setTimeout(() => {
+            if (this._authPromise === authPromise) {
+              this.clearPreviousAuth()
+            }
+          }, ((expires_in || 3600) - 60) * 1000)
           this.timeouts.push(timeout)
         })
         .catch(() => {
@@ -258,7 +267,7 @@ export class RingRestClient {
   public readonly baseSessionMetadata
 
   constructor(
-    private authOptions: (EmailAuth | RefreshTokenAuth) & SessionOptions,
+    private authOptions: (EmailAuth | RefreshTokenAuth) & SessionOptions
   ) {
     this.refreshToken =
       'refreshToken' in authOptions ? authOptions.refreshToken : undefined
@@ -289,7 +298,7 @@ export class RingRestClient {
     }
 
     throw new Error(
-      'Refresh token is not valid.  Unable to authenticate with Ring servers.  See https://github.com/dgreif/ring/wiki/Refresh-Tokens',
+      'Refresh token is not valid.  Unable to authenticate with Ring servers.  See https://github.com/dgreif/ring/wiki/Refresh-Tokens'
     )
   }
 
@@ -375,7 +384,7 @@ export class RingRestClient {
         }
 
         throw new Error(
-          'Your Ring account is configured to use 2-factor authentication (2fa).  See https://github.com/dgreif/ring/wiki/Refresh-Tokens for details.',
+          'Your Ring account is configured to use 2-factor authentication (2fa).  See https://github.com/dgreif/ring/wiki/Refresh-Tokens for details.'
         )
       }
 
@@ -435,7 +444,7 @@ export class RingRestClient {
               : Number.parseInt(retryAfter, 10)
 
           logError(
-            `Session response rate limited. Waiting to retry after ${waitSeconds} seconds`,
+            `Session response rate limited. Waiting to retry after ${waitSeconds} seconds`
           )
           await delay((waitSeconds + 1) * 1000)
 
@@ -460,19 +469,16 @@ export class RingRestClient {
         // Refresh the session every 12 hours
         // This is needed to keep the session alive for users outside the US, due to Data Residency laws
         // We believe Ring is clearing the session info after ~24 hours, which breaks Push Notifications
-        const timeout = setTimeout(
-          () => {
-            this.refreshSession()
-          },
-          12 * 60 * 60 * 1000,
-        ) // 12 hours
+        const timeout = setTimeout(() => {
+          this.refreshSession()
+        }, 12 * 60 * 60 * 1000) // 12 hours
         this.timeouts.push(timeout)
       })
       .catch((e) => logError(e))
   }
 
   async request<T = void>(
-    options: RequestOptions & { url: string; allowNoResponse?: boolean },
+    options: RequestOptions & { url: string; allowNoResponse?: boolean }
   ): Promise<T & ExtendedResponse> {
     const hardwareId = await this.hardwareIdPromise,
       url = options.url! as string,
@@ -518,7 +524,7 @@ export class RingRestClient {
 
         if (errorText) {
           logError(
-            `http request failed.  ${url} returned errors: (${errorText}).  Trying again in 20 seconds`,
+            `http request failed.  ${url} returned errors: (${errorText}).  Trying again in 20 seconds`
           )
 
           await delay(20000)
@@ -526,8 +532,8 @@ export class RingRestClient {
         }
         logError(
           `http request failed.  ${url} returned unknown errors: (${stringify(
-            errors,
-          )}).`,
+            errors
+          )}).`
         )
       }
 
@@ -535,7 +541,7 @@ export class RingRestClient {
         logError('404 from endpoint ' + url)
         if (response.body?.error?.includes(hardwareId)) {
           logError(
-            'Session hardware_id not found.  Creating a new session and trying again.',
+            'Session hardware_id not found.  Creating a new session and trying again.'
           )
           if (this.sessionPromise === initialSessionPromise) {
             this.refreshSession()
@@ -550,7 +556,7 @@ export class RingRestClient {
         logError(
           `Request to ${url} failed with status ${
             response.status
-          }. Response body: ${stringify(response.body)}`,
+          }. Response body: ${stringify(response.body)}`
         )
       } else if (!options.allowNoResponse) {
         logError(`Request to ${url} failed:`)
@@ -574,11 +580,11 @@ export class RingRestClient {
   }
 
   set _internalOnly_pushNotificationCredentials(
-    credentials: Credentials | undefined,
+    credentials: Credentials | undefined
   ) {
     if (!this.refreshToken || !this.authConfig) {
       throw new Error(
-        'Cannot set push notification credentials without a refresh token',
+        'Cannot set push notification credentials without a refresh token'
       )
     }
 

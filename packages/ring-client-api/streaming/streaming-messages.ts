@@ -42,6 +42,18 @@ interface NotificationMessage {
   } & SessionBody
 }
 
+interface CameraStartedMessage {
+  method: 'camera_started'
+  body: SessionBody
+}
+interface StreamInfoMessage {
+  method: 'stream_info'
+  body: SessionBody & {
+    transcoding: boolean
+    transcoding_reason: 'codec_mismatch' | string
+  }
+}
+
 // eslint-disable-next-line no-shadow
 enum CloseReasonCode {
   NormalClose = 0,
@@ -68,3 +80,5 @@ export type IncomingMessage =
   | PongMessage
   | CloseMessage
   | NotificationMessage
+  | CameraStartedMessage
+  | StreamInfoMessage
