@@ -1,16 +1,16 @@
 /* eslint-disable brace-style */
-import { interval, merge, Observable, ReplaySubject, Subject } from 'rxjs'
+import type { Observable } from 'rxjs'
+import { interval, merge, ReplaySubject, Subject } from 'rxjs'
+import type { RTCIceCandidate, RtpPacket } from 'werift'
 import {
-  ConnectionState,
+  type ConnectionState,
   MediaStreamTrack,
-  RTCIceCandidate,
   RTCPeerConnection,
-  RtcpPacket,
+  type RtcpPacket,
   RTCRtpCodecParameters,
-  RtpPacket,
 } from 'werift'
-import { Subscribed } from '../subscribed'
-import { logDebug, logError, logInfo } from '../util'
+import { Subscribed } from '../subscribed.ts'
+import { logDebug, logError, logInfo } from '../util.ts'
 
 const ringIceServers = [
   'stun:stun.kinesisvideo.us-east-1.amazonaws.com:443',
@@ -133,7 +133,9 @@ export class WeriftPeerConnection
     })
     this.pc.onIceCandidate.subscribe((iceCandidate) => {
       if (iceCandidate) {
+        if (iceCandidate) {
         this.onIceCandidate.next(iceCandidate)
+      }
       }
     })
 

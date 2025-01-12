@@ -46,6 +46,7 @@ interface CameraStartedMessage {
   method: 'camera_started'
   body: SessionBody
 }
+
 interface StreamInfoMessage {
   method: 'stream_info'
   body: SessionBody & {

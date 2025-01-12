@@ -1,6 +1,7 @@
 import type { Credentials } from '@eneris/push-receiver/dist/types'
 import assert from 'assert'
 import { ReplaySubject } from 'rxjs'
+import { Agent } from 'undici'
 import {
   Auth2faResponse,
   AuthTokenResponse,
@@ -15,15 +16,21 @@ import {
   logInfo,
   stringify,
   toBase64,
-} from './util'
+} from './util.ts'
 
 interface RequestOptions extends RequestInit {
   responseType?: 'json' | 'buffer'
   timeout?: number
   json?: object
+  dispatcher?: Agent
 }
 
-const defaultRequestOptions: RequestOptions = {
+const fetchAgent = new Agent({
+    connections: 6,
+    pipelining: 1,
+    keepAliveTimeout: 115000,
+  }),
+  defaultRequestOptions: RequestOptions = {
     responseType: 'json',
     method: 'GET',
     timeout: 20000,
@@ -79,10 +86,10 @@ async function responseToError(response: Response) {
 
     try {
       error.response.body = JSON.parse(bodyText)
-    } catch (_) {
+    } catch {
       error.response.body = bodyText
     }
-  } catch (_) {
+  } catch {
     // ignore
   }
 
@@ -91,11 +98,11 @@ async function responseToError(response: Response) {
 
 async function requestWithRetry<T>(
   requestOptions: RequestOptions & { url: string; allowNoResponse?: boolean },
-  retryCount = 0
+  retryCount = 0,
 ): Promise<T & ExtendedResponse> {
   if (typeof fetch !== 'function') {
     throw new Error(
-      `Your current NodeJS version (${process.version}) is too old to support this plugin.  Please upgrade to the latest LTS version of NodeJS.`
+      `Your current NodeJS version (${process.version}) is too old to support this plugin.  Please upgrade to the latest LTS version of NodeJS.`,
     )
   }
 
@@ -116,6 +123,7 @@ async function requestWithRetry<T>(
     const options = {
       ...defaultRequestOptions,
       ...requestOptions,
+      dispatcher: fetchAgent,
     }
 
     // If a timeout is provided, create an AbortSignal for it
@@ -141,7 +149,7 @@ async function requestWithRetry<T>(
       const text = await response.text()
       try {
         data = JSON.parse(text)
-      } catch (_) {
+      } catch {
         data = text as any
       }
     }
@@ -165,11 +173,11 @@ async function requestWithRetry<T>(
         detailedError += e.cause?.message ? `, Cause: ${e.cause.message}` : ''
         detailedError += e.cause?.code ? `, Code: ${e.cause.code}` : ''
         logError(
-          `Retry #${retryCount} failed to reach Ring server at ${requestOptions.url}.  ${detailedError}.  Trying again in 5 seconds...`
+          `Retry #${retryCount} failed to reach Ring server at ${requestOptions.url}.  ${detailedError}.  Trying again in 5 seconds...`,
         )
         if (e.message.includes('NGHTTP2_ENHANCE_YOUR_CALM')) {
           logError(
-            `There is a known issue with your current NodeJS version (${process.version}).  Please see https://github.com/dgreif/ring/wiki/NGHTTP2_ENHANCE_YOUR_CALM-Error for details`
+            `There is a known issue with your current NodeJS version (${process.version}).  Please see https://github.com/dgreif/ring/wiki/NGHTTP2_ENHANCE_YOUR_CALM-Error for details`,
           )
         }
         logDebug(e)
@@ -218,7 +226,7 @@ function parseAuthConfig(rawRefreshToken?: string): AuthConfig | undefined {
     assert(config)
     assert(config.rt)
     return config
-  } catch (_) {
+  } catch {
     return {
       rt: rawRefreshToken,
     }

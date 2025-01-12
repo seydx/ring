@@ -6,13 +6,15 @@ import {
   Subject,
 } from 'rxjs'
 import { concatMap, take } from 'rxjs/operators'
-import { RtpPacket } from 'werift'
-import { WebSocket } from 'ws'
-import { RingCamera } from '../ring-camera'
-import { Subscribed } from '../subscribed'
-import { generateUuid, logDebug, logError, logInfo } from '../util'
-import { BasicPeerConnection, WeriftPeerConnection } from './peer-connection'
-import { IncomingMessage } from './streaming-messages'
+import type { RtpPacket } from 'werift'
+import type { RingCamera } from '../ring-camera.ts'
+import { Subscribed } from '../subscribed.ts'
+import { generateUuid, logDebug, logError, logInfo } from '../util.ts'
+import {
+  type BasicPeerConnection,
+  WeriftPeerConnection,
+} from './peer-connection.ts'
+import type { IncomingMessage } from './streaming-messages.ts'
 
 export interface StreamingConnectionOptions {
   createPeerConnection?: () => BasicPeerConnection
@@ -202,7 +204,7 @@ export class WebrtcConnection extends Subscribed {
         return
       case 'pong':
         return
-      case 'notification':
+      case 'notification': {
         const { text } = message.body
         if (text === 'camera_connected') {
           this.onCameraConnected.next()
@@ -214,10 +216,15 @@ export class WebrtcConnection extends Subscribed {
           return
         }
         break
+      }
       case 'close':
         logError('Video stream closed')
         logError(message.body)
         this.callEnded()
+        return
+      case 'camera_started':
+      case 'stream_info':
+        // ignore these messages as we don't use them
         return
       case 'camera_started':
       case 'stream_info':

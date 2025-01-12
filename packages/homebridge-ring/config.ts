@@ -1,6 +1,6 @@
-import { AlarmMode, RingApiOptions } from 'ring-client-api'
+import type { AlarmMode, RingApiOptions } from 'ring-client-api'
 import { readFileSync, writeFileSync } from 'fs'
-import { API } from 'homebridge'
+import type { API } from 'homebridge'
 import { createHash, randomBytes } from 'crypto'
 import { join } from 'path'
 
@@ -60,7 +60,7 @@ export function getSystemId(homebridgeStoragePath: string) {
     if (ringContext.systemId) {
       return ringContext.systemId
     }
-  } catch (_) {
+  } catch {
     // expect errors if file doesn't exist or is in a bad format
   }
 

@@ -1,11 +1,11 @@
-import { hap } from './hap'
-import { RingPlatformConfig } from './config'
+import { hap } from './hap.ts'
+import type { RingPlatformConfig } from './config.ts'
 import type { RingCamera } from 'ring-client-api'
-import { BaseDataAccessory } from './base-data-accessory'
+import { BaseDataAccessory } from './base-data-accessory.ts'
 import { filter, map, switchMap, throttleTime } from 'rxjs/operators'
-import { CameraSource } from './camera-source'
-import { PlatformAccessory } from 'homebridge'
-import { TargetValueTimer } from './target-value-timer'
+import { CameraSource } from './camera-source.ts'
+import type { PlatformAccessory } from 'homebridge'
+import { TargetValueTimer } from './target-value-timer.ts'
 import { delay, logError, logInfo } from 'ring-client-api/util'
 import { firstValueFrom } from 'rxjs'
 
@@ -248,7 +248,7 @@ export class Camera extends BaseDataAccessory<RingCamera> {
 
     try {
       await this.cameraSource.loadSnapshot(imageUuid)
-    } catch (e) {
+    } catch {
       logInfo(
         this.device.name +
           ' Failed to load snapshot.  Sending event to HomeKit without new snapshot',

@@ -1,4 +1,4 @@
-import PushReceiver from '@eneris/push-receiver'
+import { PushReceiver } from '@eneris/push-receiver'
 import JSONbig from 'json-bigint'
 import { combineLatest, EMPTY, merge, Subject } from 'rxjs'
 import {
@@ -7,19 +7,15 @@ import {
   switchMap,
   throttleTime,
 } from 'rxjs/operators'
-import { setFfmpegPath } from './ffmpeg'
-import { Location } from './location'
-import {
-  clientApi,
-  deviceApi,
-  RefreshTokenAuth,
-  RingRestClient,
-  SessionOptions,
-} from './rest-client'
-import { AnyCameraData, RingCamera } from './ring-camera'
-import { RingChime } from './ring-chime'
-import { RingIntercom } from './ring-intercom'
-import {
+import { setFfmpegPath } from './ffmpeg.ts'
+import { Location } from './location.ts'
+import type { RefreshTokenAuth, SessionOptions } from './rest-client.ts'
+import { clientApi, deviceApi, RingRestClient } from './rest-client.ts'
+import type { AnyCameraData } from './ring-camera.ts'
+import { RingCamera } from './ring-camera.ts'
+import { RingChime } from './ring-chime.ts'
+import { RingIntercom } from './ring-intercom.ts'
+import type {
   BaseStation,
   BeamBridge,
   CameraData,
@@ -28,14 +24,19 @@ import {
   OnvifCameraData,
   ProfileResponse,
   PushNotification,
-  PushNotificationAction,
-  RingDeviceType,
   ThirdPartyGarageDoorOpener,
   UnknownDevice,
   UserLocation,
-} from './ring-types'
-import { Subscribed } from './subscribed'
-import { clearTimeouts, enableDebug, logDebug, logError, logInfo } from './util'
+} from './ring-types.ts'
+import { PushNotificationAction, RingDeviceType } from './ring-types.ts'
+import { Subscribed } from './subscribed.ts'
+import {
+  clearTimeouts,
+  enableDebug,
+  logDebug,
+  logError,
+  logInfo,
+} from './util.ts'
 
 export interface RingApiOptions extends SessionOptions {
   locationIds?: string[]
@@ -292,6 +293,18 @@ export class RingApi extends Subscribed {
         }
       }),
     )
+
+    pushReceiver.on('ON_DISCONNECT', () => {
+      pushReceiver.whenReady.catch((e) => {
+        logError(
+          'Connection to the push notification server has failed unexpectedly',
+        )
+        logError(
+          'If this happens repeatedly, verify connections to TCP/5228 are not blocked by firewall or IDS/IPS policies, and that DNS Adblock rules allow mtalk.google.com',
+        )
+        logError(e.message)
+      })
+    })
 
     try {
       await pushReceiver.connect()
