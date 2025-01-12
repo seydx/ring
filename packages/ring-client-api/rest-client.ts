@@ -1,12 +1,12 @@
-import type { Credentials } from '@eneris/push-receiver/dist/types'
+import type { Credentials } from '@eneris/push-receiver/dist/types.d.js'
 import assert from 'assert'
 import { ReplaySubject } from 'rxjs'
 import { Agent } from 'undici'
-import {
+import type {
   Auth2faResponse,
   AuthTokenResponse,
   SessionResponse,
-} from './ring-types'
+} from './ring-types.ts'
 import {
   delay,
   fromBase64,
@@ -98,11 +98,11 @@ async function responseToError(response: Response) {
 
 async function requestWithRetry<T>(
   requestOptions: RequestOptions & { url: string; allowNoResponse?: boolean },
-  retryCount = 0,
+  retryCount = 0
 ): Promise<T & ExtendedResponse> {
   if (typeof fetch !== 'function') {
     throw new Error(
-      `Your current NodeJS version (${process.version}) is too old to support this plugin.  Please upgrade to the latest LTS version of NodeJS.`,
+      `Your current NodeJS version (${process.version}) is too old to support this plugin.  Please upgrade to the latest LTS version of NodeJS.`
     )
   }
 
@@ -173,11 +173,11 @@ async function requestWithRetry<T>(
         detailedError += e.cause?.message ? `, Cause: ${e.cause.message}` : ''
         detailedError += e.cause?.code ? `, Code: ${e.cause.code}` : ''
         logError(
-          `Retry #${retryCount} failed to reach Ring server at ${requestOptions.url}.  ${detailedError}.  Trying again in 5 seconds...`,
+          `Retry #${retryCount} failed to reach Ring server at ${requestOptions.url}.  ${detailedError}.  Trying again in 5 seconds...`
         )
         if (e.message.includes('NGHTTP2_ENHANCE_YOUR_CALM')) {
           logError(
-            `There is a known issue with your current NodeJS version (${process.version}).  Please see https://github.com/dgreif/ring/wiki/NGHTTP2_ENHANCE_YOUR_CALM-Error for details`,
+            `There is a known issue with your current NodeJS version (${process.version}).  Please see https://github.com/dgreif/ring/wiki/NGHTTP2_ENHANCE_YOUR_CALM-Error for details`
           )
         }
         logDebug(e)

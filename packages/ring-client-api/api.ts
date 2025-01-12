@@ -70,7 +70,7 @@ export class RingApi extends Subscribed {
 
     if (locationIds && !locationIds.length) {
       logError(
-        'Your Ring config has `"locationIds": []`, which means no locations will be used and no devices will be found.',
+        'Your Ring config has `"locationIds": []`, which means no locations will be used and no devices will be found.'
       )
     }
 
@@ -147,7 +147,7 @@ export class RingApi extends Subscribed {
   private listenForDeviceUpdates(
     cameras: RingCamera[],
     chimes: RingChime[],
-    intercoms: RingIntercom[],
+    intercoms: RingIntercom[]
   ) {
     const { cameraStatusPollingSeconds } = this.options
     if (!cameraStatusPollingSeconds) {
@@ -155,33 +155,24 @@ export class RingApi extends Subscribed {
     }
     const devices = [...cameras, ...chimes, ...intercoms],
       onDeviceRequestUpdate = merge(
-        ...devices.map((device) => device.onRequestUpdate),
+        ...devices.map((device) => device.onRequestUpdate)
       ),
       onUpdateReceived = new Subject(),
       onPollForStatusUpdate = cameraStatusPollingSeconds
         ? onUpdateReceived.pipe(debounceTime(cameraStatusPollingSeconds * 1000))
         : EMPTY,
-      camerasById = cameras.reduce(
-        (byId, camera) => {
-          byId[camera.id] = camera
-          return byId
-        },
-        {} as { [id: number]: RingCamera },
-      ),
-      chimesById = chimes.reduce(
-        (byId, chime) => {
-          byId[chime.id] = chime
-          return byId
-        },
-        {} as { [id: number]: RingChime },
-      ),
-      intercomsById = intercoms.reduce(
-        (byId, intercom) => {
-          byId[intercom.id] = intercom
-          return byId
-        },
-        {} as { [id: number]: RingIntercom },
-      )
+      camerasById = cameras.reduce((byId, camera) => {
+        byId[camera.id] = camera
+        return byId
+      }, {} as { [id: number]: RingCamera }),
+      chimesById = chimes.reduce((byId, chime) => {
+        byId[chime.id] = chime
+        return byId
+      }, {} as { [id: number]: RingChime }),
+      intercomsById = intercoms.reduce((byId, intercom) => {
+        byId[intercom.id] = intercom
+        return byId
+      }, {} as { [id: number]: RingIntercom })
 
     if (!cameras.length && !chimes.length && !intercoms.length) {
       return
@@ -191,7 +182,7 @@ export class RingApi extends Subscribed {
       merge(onDeviceRequestUpdate, onPollForStatusUpdate)
         .pipe(
           throttleTime(500),
-          switchMap(() => this.fetchRingDevices().catch(() => null)),
+          switchMap(() => this.fetchRingDevices().catch(() => null))
         )
         .subscribe((response) => {
           onUpdateReceived.next(null)
@@ -220,7 +211,7 @@ export class RingApi extends Subscribed {
               intercom.updateData(data)
             }
           })
-        }),
+        })
     )
 
     if (cameraStatusPollingSeconds) {
@@ -230,7 +221,7 @@ export class RingApi extends Subscribed {
 
   private async registerPushReceiver(
     cameras: RingCamera[],
-    intercoms: RingIntercom[],
+    intercoms: RingIntercom[]
   ) {
     const credentials =
         this.restClient._internalOnly_pushNotificationCredentials?.config &&
@@ -291,16 +282,16 @@ export class RingApi extends Subscribed {
         } catch (e) {
           logError(e)
         }
-      }),
+      })
     )
 
     pushReceiver.on('ON_DISCONNECT', () => {
       pushReceiver.whenReady.catch((e) => {
         logError(
-          'Connection to the push notification server has failed unexpectedly',
+          'Connection to the push notification server has failed unexpectedly'
         )
         logError(
-          'If this happens repeatedly, verify connections to TCP/5228 are not blocked by firewall or IDS/IPS policies, and that DNS Adblock rules allow mtalk.google.com',
+          'If this happens repeatedly, verify connections to TCP/5228 are not blocked by firewall or IDS/IPS policies, and that DNS Adblock rules allow mtalk.google.com'
         )
         logError(e.message)
       })
@@ -319,7 +310,7 @@ export class RingApi extends Subscribed {
       // These are likely duplicates, and we aren't currently storying persistent ids anywhere to avoid re-processing them
       if (Date.now() - startTime < 2000) {
         logInfo(
-          'Ignoring push notification received in first two seconds after starting up',
+          'Ignoring push notification received in first two seconds after starting up'
         )
         return
       }
@@ -331,7 +322,7 @@ export class RingApi extends Subscribed {
           try {
             // If it's a JSON string, parse it into an object
             messageData[p] = JSONbig({ storeAsString: true }).parse(
-              message.data[p] as string,
+              message.data[p] as string
             )
           } catch {
             // Otherwise just assign the value directly
@@ -357,7 +348,7 @@ export class RingApi extends Subscribed {
           ) {
             logDebug(
               'Received v2 push notification with unknown category: ' +
-                eventCategory,
+                eventCategory
             )
             logDebug(JSON.stringify(message))
           }
@@ -399,7 +390,7 @@ export class RingApi extends Subscribed {
 
     if (!rawLocations) {
       throw new Error(
-        'The Ring account which you used to generate a refresh token does not have any associated locations.  Please use an account that has access to at least one location.',
+        'The Ring account which you used to generate a refresh token does not have any associated locations.  Please use an account that has access to at least one location.'
       )
     }
 
@@ -424,7 +415,7 @@ export class RingApi extends Subscribed {
         intercoms,
       } = await this.fetchRingDevices(),
       locationIdsWithHubs = [...baseStations, ...beamBridges].map(
-        (x) => x.location_id,
+        (x) => x.location_id
       ),
       cameras = allCameras.map(
         (data) =>
@@ -434,12 +425,12 @@ export class RingApi extends Subscribed {
               authorizedDoorbots.includes(data as CameraData) ||
               data.kind.startsWith('doorbell'),
             this.restClient,
-            this.options.avoidSnapshotBatteryDrain || false,
-          ),
+            this.options.avoidSnapshotBatteryDrain || false
+          )
       ),
       ringChimes = chimes.map((data) => new RingChime(data, this.restClient)),
       ringIntercoms = intercoms.map(
-        (data) => new RingIntercom(data, this.restClient),
+        (data) => new RingIntercom(data, this.restClient)
       ),
       locations = rawLocations
         .filter((location) => {
@@ -453,24 +444,24 @@ export class RingApi extends Subscribed {
             new Location(
               location,
               cameras.filter(
-                (x) => x.data.location_id === location.location_id,
+                (x) => x.data.location_id === location.location_id
               ),
               ringChimes.filter(
-                (x) => x.data.location_id === location.location_id,
+                (x) => x.data.location_id === location.location_id
               ),
               ringIntercoms.filter(
-                (x) => x.data.location_id === location.location_id,
+                (x) => x.data.location_id === location.location_id
               ),
               {
                 hasHubs: locationIdsWithHubs.includes(location.location_id),
                 hasAlarmBaseStation: baseStations.some(
-                  (station) => station.location_id === location.location_id,
+                  (station) => station.location_id === location.location_id
                 ),
                 locationModePollingSeconds:
                   this.options.locationModePollingSeconds,
               },
-              this.restClient,
-            ),
+              this.restClient
+            )
         )
 
     this.listenForDeviceUpdates(cameras, ringChimes, ringIntercoms)
@@ -494,7 +485,7 @@ export class RingApi extends Subscribed {
     const locations = await this.getLocations()
     return locations.reduce(
       (cameras, location) => [...cameras, ...location.cameras],
-      [] as RingCamera[],
+      [] as RingCamera[]
     )
   }
 
@@ -512,7 +503,7 @@ export class RingApi extends Subscribed {
 
     this.getLocations()
       .then((locations) =>
-        locations.forEach((location) => location.disconnect()),
+        locations.forEach((location) => location.disconnect())
       )
       .catch((e) => {
         logError(e)

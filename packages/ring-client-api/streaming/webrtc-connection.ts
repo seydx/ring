@@ -7,6 +7,7 @@ import {
 } from 'rxjs'
 import { concatMap, take } from 'rxjs/operators'
 import type { RtpPacket } from 'werift'
+import { WebSocket } from 'ws'
 import type { RingCamera } from '../ring-camera.ts'
 import { Subscribed } from '../subscribed.ts'
 import { generateUuid, logDebug, logError, logInfo } from '../util.ts'
@@ -221,10 +222,6 @@ export class WebrtcConnection extends Subscribed {
         logError('Video stream closed')
         logError(message.body)
         this.callEnded()
-        return
-      case 'camera_started':
-      case 'stream_info':
-        // ignore these messages as we don't use them
         return
       case 'camera_started':
       case 'stream_info':

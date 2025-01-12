@@ -133,9 +133,7 @@ export class WeriftPeerConnection
     })
     this.pc.onIceCandidate.subscribe((iceCandidate) => {
       if (iceCandidate) {
-        if (iceCandidate) {
         this.onIceCandidate.next(iceCandidate)
-      }
       }
     })
 
