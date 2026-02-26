@@ -1,5 +1,48 @@
 # homebridge-ring
 
+## 14.3.0
+
+### Minor Changes
+
+- [#1706](https://github.com/dgreif/ring/pull/1706) [`8381520`](https://github.com/dgreif/ring/commit/8381520f86d7d7813f670e3887b43d92542f0a41) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Add support for Ring Chime Pro nightlight
+
+- [#1705](https://github.com/dgreif/ring/pull/1705) [`5360c16`](https://github.com/dgreif/ring/commit/5360c16f91d8680a20e68b2dd28e63cc0108c241) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Block streaming from cameras based on location mode settings. This may prevent you from streaming in cases where you could previously stream in HomeKit but not the Ring app.
+
+- [#1707](https://github.com/dgreif/ring/pull/1707) [`5a8c844`](https://github.com/dgreif/ring/commit/5a8c844ffe4adc39e8a517628b26611fac36ef0a) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Add support for Kidde Ring Smoke + CO Alarm device (comp.bluejay.sensor_bluejay_wsc). Note, this has not been tested and may not be working yet.
+
+### Patch Changes
+
+- [`875f024`](https://github.com/dgreif/ring/commit/875f024c5f27c55785d7250bc78eff0fda0a4aa9) Thanks [@dgreif](https://github.com/dgreif)! - Update dependencies
+
+- Updated dependencies [[`8381520`](https://github.com/dgreif/ring/commit/8381520f86d7d7813f670e3887b43d92542f0a41), [`875f024`](https://github.com/dgreif/ring/commit/875f024c5f27c55785d7250bc78eff0fda0a4aa9), [`5360c16`](https://github.com/dgreif/ring/commit/5360c16f91d8680a20e68b2dd28e63cc0108c241), [`5a8c844`](https://github.com/dgreif/ring/commit/5a8c844ffe4adc39e8a517628b26611fac36ef0a)]:
+  - ring-client-api@14.3.0
+
+## 14.2.0
+
+### Minor Changes
+
+- [`56ecd51`](https://github.com/dgreif/ring/commit/56ecd5101e03d6baa92df77af2f13ce5e662d4c4) Thanks [@majd](https://github.com/majd)! - Add basic support for Ring Intercom Video (ding notifications, but no video/audio streaming)
+
+### Patch Changes
+
+- [`32030b4`](https://github.com/dgreif/ring/commit/32030b425cef31c536f6aaae7f8954eec3937abf) Thanks [@dgreif](https://github.com/dgreif)! - Updated dependencies
+
+- Updated dependencies [[`56ecd51`](https://github.com/dgreif/ring/commit/56ecd5101e03d6baa92df77af2f13ce5e662d4c4), [`32030b4`](https://github.com/dgreif/ring/commit/32030b425cef31c536f6aaae7f8954eec3937abf)]:
+  - ring-client-api@14.2.0
+
+## 14.1.0
+
+### Minor Changes
+
+- [`c1a519f`](https://github.com/dgreif/ring/commit/c1a519f4ff24e3dbd5455a4e8edd5c0a3bb37110) Thanks [@dgreif](https://github.com/dgreif)! - Allow Node.js 24 as supported engine
+
+### Patch Changes
+
+- [`406abf1`](https://github.com/dgreif/ring/commit/406abf154fd20a439431b1ed78409d8bcf679b9a) Thanks [@dgreif](https://github.com/dgreif)! - Update dependencies
+
+- Updated dependencies [[`c1a519f`](https://github.com/dgreif/ring/commit/c1a519f4ff24e3dbd5455a4e8edd5c0a3bb37110), [`406abf1`](https://github.com/dgreif/ring/commit/406abf154fd20a439431b1ed78409d8bcf679b9a)]:
+  - ring-client-api@14.1.0
+
 ## 14.0.1
 
 ### Patch Changes
